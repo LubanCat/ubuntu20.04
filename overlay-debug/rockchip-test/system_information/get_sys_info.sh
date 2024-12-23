@@ -1,12 +1,12 @@
 #!/bin/bash
 
-DIR_SYSINFO=/rockchip-test/system_infomation
+DIR_SYSINFO=/rockchip-test/system_information
 
 info_view()
 {
     echo "*****************************************************"
     echo "***                                               ***"
-    echo "***            SYSTEM INFOMATION                  ***"
+    echo "***            SYSTEM INFORMATION                  ***"
     echo "***                                               ***"
     echo "*****************************************************"
 }

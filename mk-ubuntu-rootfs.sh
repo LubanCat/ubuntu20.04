@@ -147,7 +147,6 @@ sudo tar -xpf ubuntu-base-$TARGET-$ARCH-*.tar.gz
 # packages folder
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rpf packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
-sudo cp -rpfv packages/soc/$SOC/* $TARGET_ROOTFS_DIR/packages || true
 
 #GPU/CAMERA packages folder
 install_packages
@@ -201,11 +200,11 @@ for u in \$(ls /home/); do
 done
 
 if [ $MIRROR ]; then
-	mkdir -p /etc/apt/keyrings
-	curl -fsSL https://Embedfire.github.io/keyfile | gpg --dearmor -o /etc/apt/keyrings/embedfire.gpg
-	chmod a+r /etc/apt/keyrings/embedfire.gpg
-	echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian carp-lbc main" | tee /etc/apt/sources.list.d/embedfire-lbc.list > /dev/null
-	echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | tee /etc/apt/sources.list.d/embedfire-$MIRROR.list > /dev/null
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL https://Embedfire.github.io/keyfile | gpg --dearmor -o /etc/apt/keyrings/embedfire.gpg
+    chmod a+r /etc/apt/keyrings/embedfire.gpg
+    echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian carp-lbc main" | tee /etc/apt/sources.list.d/embedfire-lbc.list > /dev/null
+    echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | tee /etc/apt/sources.list.d/embedfire-$MIRROR.list > /dev/null
 fi
 
 export LC_ALL=C.UTF-8
@@ -214,7 +213,6 @@ apt-get update
 apt-get upgrade -y
 
 chmod o+x /usr/lib/dbus-1.0/dbus-daemon-launch-helper
-chmod +x /etc/rc.local
 
 export DEBIAN_FRONTEND=noninteractive
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
@@ -256,8 +254,8 @@ echo -e "\033[47;36m ----------- RGA  ----------- \033[0m"
 
 if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     echo -e "\033[47;36m ------ Setup Video---------- \033[0m"
-    \${APT_INSTALL} gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-tools gstreamer1.0-alsa \
-    gstreamer1.0-plugins-base-apps qtmultimedia5-examples
+    \${APT_INSTALL} gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-tools gstreamer1.0-alsa \
+    gstreamer1.0-plugins-base-apps
 
     \${APT_INSTALL} /packages/mpp/*
     \${APT_INSTALL} /packages/gst-rkmpp/*.deb
@@ -290,6 +288,7 @@ fi
 if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     echo -e "\033[47;36m ------ update chromium ----- \033[0m"
     \${APT_INSTALL} /packages/chromium/*.deb
+
     # echo -e "\033[47;36m --------- firefox-esr ------ \033[0m"
     # \${APT_INSTALL} /packages/firefox/*.deb
 fi
@@ -300,9 +299,7 @@ echo -e "\033[47;36m ------- Install libdrm ------ \033[0m"
 if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     echo -e "\033[47;36m ------ libdrm-cursor -------- \033[0m"
     \${APT_INSTALL} /packages/libdrm-cursor/*.deb
-fi
 
-if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     if [ "$VERSION" == "debug" ]; then
         echo -e "\033[47;36m ------ Install glmark2 ------ \033[0m"
         \${APT_INSTALL} glmark2-es2
@@ -311,7 +308,7 @@ fi
 
 if [ -e "/usr/lib/aarch64-linux-gnu" ] ; then
 echo -e "\033[47;36m ------- move rknpu2 --------- \033[0m"
-mv /packages/rknpu2/*.tar  /
+mv /packages/rknpu2/rknpu2.tar  /
 fi
 
 echo -e "\033[47;36m ----- Install rktoolkit ----- \033[0m"
@@ -320,10 +317,7 @@ echo -e "\033[47;36m ----- Install rktoolkit ----- \033[0m"
 if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     echo -e "\033[47;36m ------ Install ffmpeg ------- \033[0m"
     \${APT_INSTALL} ffmpeg
-    # \${APT_INSTALL} /packages/ffmpeg/*.deb
-fi
-
-if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
+    \${APT_INSTALL} /packages/ffmpeg/*.deb
     echo -e "\033[47;36m ------- Install mpv --------- \033[0m"
     \apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -y /packages/mpv/*.deb
 fi
