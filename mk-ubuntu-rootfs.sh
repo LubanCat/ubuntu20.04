@@ -17,25 +17,13 @@ if [ ! $SOC ]; then
     read input
 
     case $input in
-        0)
-            exit;;
-        1)
-            SOC=rk3128
-            ;;
-        2)
-            SOC=rk3528
-            ;;
-        3)
-            SOC=rk3562
-            ;;
-        4)
-            SOC=rk356x
-            ;;
-        5)
-            SOC=rk3588
-            ;;
-        *)
-            echo 'input soc number error, exit !'
+        0)  exit ;;
+        1)  SOC=rk3128 ;;
+        2)  SOC=rk3528 ;;
+        3)  SOC=rk3562 ;;
+        4)  SOC=rk356x ;;
+        5)  SOC=rk3588 ;;
+        *)  echo 'input soc number error, exit !'
             exit;;
     esac
     echo -e "\033[47;36m set SOC=$SOC...... \033[0m"
@@ -55,25 +43,13 @@ if [ ! $TARGET ]; then
     read input
 
     case $input in
-        0)
-            exit;;
-        1)
-            TARGET=gnome
-            ;;
-        2)
-            TARGET=xfce
-            ;;
-        3)
-            TARGET=lite
-            ;;
-        4)
-            TARGET=gnome-full
-            ;;
-        5)
-            TARGET=xfce-full
-            ;;
-        *)
-            echo -e "\033[47;36m input TARGET version number error, exit ! \033[0m"
+        0)  exit ;;
+        1) TARGET=gnome ;;
+        2) TARGET=xfce ;;
+        3) TARGET=lite ;;
+        4) TARGET=gnome-full ;;
+        5) TARGET=xfce-full ;;
+        *)  echo -e "\033[47;36m input TARGET version number error, exit ! \033[0m"
             exit;;
     esac
     echo -e "\033[47;36m set TARGET=$TARGET...... \033[0m"
@@ -151,8 +127,8 @@ sudo cp -rpf packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 #GPU/CAMERA packages folder
 install_packages
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages/install_packages
-sudo cp -rpf packages/$ARCH/libmali/libmali-*$MALI*-x11*.deb $TARGET_ROOTFS_DIR/packages/install_packages
-sudo cp -rpf packages/$ARCH/${ISP:0:5}/camera_engine_$ISP*.deb $TARGET_ROOTFS_DIR/packages/install_packages
+sudo cp -rpfv packages/$ARCH/libmali/libmali-*$MALI*-x11*.deb $TARGET_ROOTFS_DIR/packages/install_packages
+sudo cp -rpfv packages/$ARCH/${ISP:0:5}/camera_engine_$ISP*.deb $TARGET_ROOTFS_DIR/packages/install_packages
 
 #linux kernel deb
 if [ -e ../linux-headers* ]; then
@@ -199,11 +175,12 @@ for u in \$(ls /home/); do
     chown -h -R \$u:\$u /home/\$u
 done
 
+# Add embedfire packages source
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://Embedfire.github.io/keyfile | gpg --dearmor -o /etc/apt/keyrings/embedfire.gpg
+chmod a+r /etc/apt/keyrings/embedfire.gpg
+echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian carp-lbc main" | tee /etc/apt/sources.list.d/embedfire-lbc.list > /dev/null
 if [ $MIRROR ]; then
-    mkdir -p /etc/apt/keyrings
-    curl -fsSL https://Embedfire.github.io/keyfile | gpg --dearmor -o /etc/apt/keyrings/embedfire.gpg
-    chmod a+r /etc/apt/keyrings/embedfire.gpg
-    echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian carp-lbc main" | tee /etc/apt/sources.list.d/embedfire-lbc.list > /dev/null
     echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | tee /etc/apt/sources.list.d/embedfire-$MIRROR.list > /dev/null
 fi
 
@@ -218,22 +195,16 @@ export DEBIAN_FRONTEND=noninteractive
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
 
 echo -e "\033[47;36m ---------- LubanCat -------- \033[0m"
-if [ $MIRROR ]; then
-    \${APT_INSTALL} fire-config lbc-test
-fi
-
 apt purge initramfs-tools -y
 
-\${APT_INSTALL} u-boot-tools edid-decode logrotate
+\${APT_INSTALL} dialog toilet u-boot-tools edid-decode logrotate fire-config lbc-test
 if [[ "$TARGET" == "gnome" || "$TARGET" == "gnome-full" ]]; then
-    \${APT_INSTALL} gdisk
-    [[-z $MIRROR ]] && \${APT_INSTALL} fire-config-gui
+    \${APT_INSTALL} gdisk fire-config-gui
     #Desktop background picture
     ln -sf /usr/share/xfce4/backdrops/lubancat-wallpaper.png /usr/share/backgrounds/warty-final-ubuntu.png
 elif [[ "$TARGET" == "xfce" || "$TARGET" == "xfce-full" ]]; then
     \apt-get remove -y gnome-bluetooth
-    \${APT_INSTALL} bluez bluez-tools
-    [[-z $MIRROR ]] && \${APT_INSTALL} fire-config-gui
+    \${APT_INSTALL} bluez bluez-tools fire-config-gui
     #Desktop background picture
     ln -sf /usr/share/xfce4/backdrops/lubancat-wallpaper.png /usr/share/xfce4/backdrops/xubuntu-wallpaper.png
 elif [ "$TARGET" == "lite" ]; then
@@ -341,21 +312,21 @@ rm /lib/systemd/system/wpa_supplicant@.service
 echo -e "\033[47;36m  ---------- Clean ----------- \033[0m"
 if [ -e "/usr/lib/arm-linux-gnueabihf/dri" ] ;
 then
-        # Only preload libdrm-cursor for X
-        sed -i "1aexport LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libdrm-cursor.so.1" /usr/bin/X
-        cd /usr/lib/arm-linux-gnueabihf/dri/
-        cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
-        rm /usr/lib/arm-linux-gnueabihf/dri/*.so
-        mv /*.so /usr/lib/arm-linux-gnueabihf/dri/
+    # Only preload libdrm-cursor for X
+    sed -i "1aexport LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libdrm-cursor.so.1" /usr/bin/X
+    cd /usr/lib/arm-linux-gnueabihf/dri/
+    cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
+    rm /usr/lib/arm-linux-gnueabihf/dri/*.so
+    mv /*.so /usr/lib/arm-linux-gnueabihf/dri/
 elif [ -e "/usr/lib/aarch64-linux-gnu/dri" ];
 then
-        # Only preload libdrm-cursor for X
-        sed -i "1aexport LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libdrm-cursor.so.1" /usr/bin/X
-        cd /usr/lib/aarch64-linux-gnu/dri/
-        cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
-        rm /usr/lib/aarch64-linux-gnu/dri/*.so
-        mv /*.so /usr/lib/aarch64-linux-gnu/dri/
-        rm /etc/profile.d/qt.sh
+    # Only preload libdrm-cursor for X
+    sed -i "1aexport LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libdrm-cursor.so.1" /usr/bin/X
+    cd /usr/lib/aarch64-linux-gnu/dri/
+    cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
+    rm /usr/lib/aarch64-linux-gnu/dri/*.so
+    mv /*.so /usr/lib/aarch64-linux-gnu/dri/
+    rm /etc/profile.d/qt.sh
 fi
 
 rm -rf /home/$(whoami)
