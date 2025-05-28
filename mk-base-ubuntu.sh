@@ -14,25 +14,13 @@ if [ ! $TARGET ]; then
 	read input
 
 	case $input in
-		0)
-			exit;;
-		1)
-			TARGET=gnome
-			;;
-		2)
-			TARGET=xfce
-			;;
-		3)
-			TARGET=lite
-			;;
-		4)
-			TARGET=gnome-full
-			;;
-		5)
-			TARGET=xfce-full
-			;;
-		*)
-			echo -e "\033[47;36m input TARGET version number error, exit ! \033[0m"
+		0)  exit;;
+		1)  TARGET=gnome ;;
+		2)  TARGET=xfce ;;
+		3)  TARGET=lite ;;
+		4)  TARGET=gnome-full ;;
+		5)  TARGET=xfce-full ;;
+		*)  echo -e "\033[47;36m input TARGET version number error, exit ! \033[0m"
 			exit;;
 	esac
     echo -e "\033[47;36m set TARGET=$TARGET...... \033[0m"
@@ -125,7 +113,7 @@ fi
 \${APT_INSTALL} net-tools openssh-server ifupdown alsa-utils ntp network-manager gdb inetutils-ping libssl-dev \
     vsftpd tcpdump can-utils i2c-tools strace vim iperf3 ethtool netplan.io toilet htop pciutils usbutils curl \
     whiptail gnupg bc xinput gdisk parted gcc sox libsox-fmt-all gpiod libgpiod-dev python3-pip python3-libgpiod \
-    guvcview
+    guvcview u-boot-tools bash-completion
 
 \${APT_INSTALL} ttf-wqy-zenhei xfonts-intl-chinese
 
