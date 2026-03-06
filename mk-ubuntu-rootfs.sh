@@ -12,7 +12,8 @@ if [ ! $SOC ]; then
     echo "[2] rk3528"
     echo "[3] rk3562"
     echo "[4] rk3566/rk3568"
-    echo "[5] rk3588/rk3588s"
+    echo "[5] rk3576"
+    echo "[6] rk3588/rk3588s"
     echo "---------------------------------------------------------"
     read input
 
@@ -22,7 +23,8 @@ if [ ! $SOC ]; then
         2)  SOC=rk3528 ;;
         3)  SOC=rk3562 ;;
         4)  SOC=rk356x ;;
-        5)  SOC=rk3588 ;;
+        5)  SOC=rk3576 ;;
+        6)  SOC=rk3588 ;;
         *)  echo 'input soc number error, exit !'
             exit;;
     esac
@@ -80,9 +82,13 @@ install_packages() {
         ISP=rkaiq_rk3568
         MIRROR=carp-rk356x
         ;;
+        rk3576)
+        MALI=bifrost-g52-g13p0
+        ISP=rkaiq_rk3576
+        ;;
         rk3588|rk3588s)
-        ISP=rkaiq_rk3588
         MALI=valhall-g610-g13p0
+        ISP=rkaiq_rk3588
         MIRROR=carp-rk3588
         ;;
     esac
@@ -334,6 +340,7 @@ rm -rf /var/lib/apt/lists/*
 rm -rf /var/cache/
 rm -rf /packages/
 rm -rf /boot/*
+rm -rf /root/.bash_history
 
 EOF
 
